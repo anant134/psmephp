@@ -206,7 +206,12 @@ class UserController extends Controller
 
             $credentials = $request->only(['username', 'password']);
             if (! $token = Auth::attempt($credentials)) {
-                return response()->json(['message' => 'Invalid credentials'], 401);
+                
+                return response()->json([ "resultKey"=>1,
+                                        "resultValue"=>[],
+                                        "errorCode" => 601,
+                                        "errorMsg" => "Invalid credentials"
+                    ], 601);
             }
 
             $userinfor=auth()->user();
@@ -214,16 +219,34 @@ class UserController extends Controller
 
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
 
-            return response()->json(['token_expired'], 500);
+            return response()->json([ "resultKey"=>1,
+            "resultValue"=>[],
+            "errorCode" => 602,
+            "errorMsg" => "Token Expired"
+            ], 602);
 
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
 
-            return response()->json(['token_invalid'], 500);
+            //return response()->json(['token_invalid'], 500);
+            return response()->json([ "resultKey"=>1,
+            "resultValue"=>[],
+            "errorCode" => 603,
+            "errorMsg" => "Token Invalid"
+            ], 603);
 
         } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
-            return response()->json(['token_absent' => $e->getMessage()], 500);
+            // return response()->json(['token_absent' => $e->getMessage()], 500);
+            return response()->json([ "resultKey"=>1,
+            "resultValue"=>[],
+            "errorCode" => 604,
+            "errorMsg" => $e->getMessage()
+            ], 604);
         } catch (\Exception $e) {
-            return response()->json(['token_absent' => $e->getMessage()], 500);
+            return response()->json([ "resultKey"=>1,
+            "resultValue"=>[],
+            "errorCode" => 604,
+            "errorMsg" => $e->getMessage()
+            ], 604);
     
         }
 
@@ -249,11 +272,12 @@ class UserController extends Controller
     }
     protected function respondWithTokenWithUser($token,$user)
     {
+       // ['resultKey' => 1, 'resultValue' => $data, 'errorCode' => null,'errorMsg' => null], 200
         return response()->json([  
-            'success' => true, 
+            "resultKey"=>1,
+            "resultValue"=>[
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'userinfo'=>$user
+            'userinfo'=>$user]
         ]);
     }
     
