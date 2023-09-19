@@ -272,6 +272,7 @@ class UserController extends Controller
     }
     protected function respondWithTokenWithUser($token,$user)
     {
+            $user->access_token=$token;
        // ['resultKey' => 1, 'resultValue' => $data, 'errorCode' => null,'errorMsg' => null], 200
         return response()->json([  
             "resultKey"=>1,
