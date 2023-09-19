@@ -73,7 +73,7 @@ $router->group(['prefix'=>'test'],function($router){
 
 $router->group(['prefix'=>'api'],function($router){
     $router->post('login','UserController@postLogin');
-    $router->post('getAppSetting','AppSettingController@getAppSetting');
+    $router->get('getAppSetting','AppSettingController@getAppSetting');
     $router->get('all','AccountController@show');
     $router->get('usertype','UsertypeController@getAllUserType');
     $router->get('getCategory','CategoryController@show');
