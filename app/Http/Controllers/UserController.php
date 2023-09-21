@@ -216,6 +216,7 @@ class UserController extends Controller
 
             $userinfor=auth()->user();
             $userr= User::where('id',$userinfor->id)->with('role')->get();
+            $userr->access_token=$token;
             return $this->respondWithTokenWithUser($token,$userr);
 
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
@@ -273,12 +274,11 @@ class UserController extends Controller
     }
     protected function respondWithTokenWithUser($token,$user)
     {
-            $user->access_token=$token;
+        
        // ['resultKey' => 1, 'resultValue' => $data, 'errorCode' => null,'errorMsg' => null], 200
         return response()->json([  
             "resultKey"=>1,
             "resultValue"=>[
-            'access_token' => $token,
             'userinfo'=>$user]
         ]);
     }
