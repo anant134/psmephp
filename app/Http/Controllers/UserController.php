@@ -207,7 +207,7 @@ class UserController extends Controller
             $credentials = $request->only(['username', 'password']);
             if (! $token = Auth::attempt($credentials)) {
                 
-                return response()->json([ "resultKey"=>1,
+                return response()->json([ "resultKey"=>0,
                                         "resultValue"=>[],
                                         "errorCode" => 601,
                                         "errorMsg" => "Invalid credentials"
@@ -220,7 +220,7 @@ class UserController extends Controller
 
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
 
-            return response()->json([ "resultKey"=>1,
+            return response()->json([ "resultKey"=>0,
             "resultValue"=>[],
             "errorCode" => 602,
             "errorMsg" => "Token Expired"
@@ -229,7 +229,7 @@ class UserController extends Controller
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
 
             //return response()->json(['token_invalid'], 500);
-            return response()->json([ "resultKey"=>1,
+            return response()->json([ "resultKey"=>0,
             "resultValue"=>[],
             "errorCode" => 603,
             "errorMsg" => "Token Invalid"
@@ -237,13 +237,13 @@ class UserController extends Controller
 
         } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             // return response()->json(['token_absent' => $e->getMessage()], 500);
-            return response()->json([ "resultKey"=>1,
+            return response()->json([ "resultKey"=>0,
             "resultValue"=>[],
             "errorCode" => 604,
             "errorMsg" => $e->getMessage()
             ], 200);
         } catch (\Exception $e) {
-            return response()->json([ "resultKey"=>1,
+            return response()->json([ "resultKey"=>0,
             "resultValue"=>[],
             "errorCode" => 604,
             "errorMsg" => $e->getMessage()
