@@ -28,6 +28,10 @@ class User extends Model implements JWTSubject, AuthenticatableContract, Authori
     {
         return $this->belongsTo(Province::class, 'province', 'id');
     }
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
+    }
     public function cites()
     {
         return $this->belongsTo(City::class, 'city', 'id');
