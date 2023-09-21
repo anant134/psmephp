@@ -211,7 +211,7 @@ class UserController extends Controller
                                         "resultValue"=>[],
                                         "errorCode" => 601,
                                         "errorMsg" => "Invalid credentials"
-                    ], 601);
+                    ], 200);
             }
 
             $userinfor=auth()->user();
@@ -224,7 +224,7 @@ class UserController extends Controller
             "resultValue"=>[],
             "errorCode" => 602,
             "errorMsg" => "Token Expired"
-            ], 602);
+            ], 200);
 
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
 
@@ -233,7 +233,7 @@ class UserController extends Controller
             "resultValue"=>[],
             "errorCode" => 603,
             "errorMsg" => "Token Invalid"
-            ], 603);
+            ], 200);
 
         } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             // return response()->json(['token_absent' => $e->getMessage()], 500);
@@ -241,7 +241,7 @@ class UserController extends Controller
             "resultValue"=>[],
             "errorCode" => 604,
             "errorMsg" => $e->getMessage()
-            ], 604);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([ "resultKey"=>1,
             "resultValue"=>[],
@@ -278,7 +278,7 @@ class UserController extends Controller
         return response()->json([  
             "resultKey"=>1,
             "resultValue"=>[
-                'access_token'=>$token,
+            'access_token'=>$token,
             'userinfo'=>$user]
         ]);
     }
