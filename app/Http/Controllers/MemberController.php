@@ -11,8 +11,8 @@ class MemberController extends BaseController
         try {
             $filter_key = "";
             $limitless_model = null;
-            if ($request->has('filter_key')) {
-                $filter_key = trim($request->get('filter_key'));
+            if ($request->has('search')) {
+                $filter_key = trim($request->get('search'));
             }
             $queryModel = Member::query();
             if ($filter_key) {
