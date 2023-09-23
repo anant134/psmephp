@@ -107,6 +107,10 @@ $router->group(['prefix'=>'api'],function($router){
         $router->post('pay','PaymentController@pay');
         $router->post('generate','PaymentController@generate');
     });
+
+    //member
+    
+    $router->post('searchmember','MemberController@SearchMember');
 });
 
 
