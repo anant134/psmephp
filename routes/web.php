@@ -59,7 +59,9 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->get('getRoutesByID','RoutesController@getRoutesByID');
         $router->post('addUpdateRoutes','RoutesController@addUpdateRoutes');
     });
-
+    $router->group(['prefix'=>'app'],function($router){
+        $router->post('claim','AppController@addUpdateRoutes');
+    });
 
 });
 $router->group(['midlleware'=>'auth','prefix'=>'api'],function($router){
