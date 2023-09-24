@@ -60,7 +60,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->post('addUpdateRoutes','RoutesController@addUpdateRoutes');
     });
     $router->group(['prefix'=>'app'],function($router){
-        $router->post('claim','AppController@addUpdateRoutes');
+        $router->post('claim','AppController@claim');
     });
 
 });
