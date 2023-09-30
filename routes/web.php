@@ -28,6 +28,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
     });
     $router->group(['prefix'=>'user'],function($router){
         $router->get('getUser','UserController@getuserinfor');
+        $router->get('getAllUser','UserController@getAlluser');
         $router->post('updateuser','UserController@updateuser');
     });
     //transaction
@@ -62,7 +63,11 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
     $router->group(['prefix'=>'app'],function($router){
         $router->post('claim','AppController@claim');
     });
-
+    $router->group(['prefix'=>'member'],function($router){
+        $router->get('getAllMember','MemberController@getAllMember');
+        $router->get('getRegistrationType','MemberController@getRegistrationType');
+        
+    });
 });
 $router->group(['midlleware'=>'auth','prefix'=>'api'],function($router){
     

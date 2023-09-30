@@ -195,6 +195,17 @@ class UserController extends Controller
         
         }
     }
+    public function getAlluser(Request $request){
+        $user= auth()->user();
+        if($user){
+            $queryModel = User::where('is_active', '=', 1)->whereNotIn('role_id', [1,2])->with('role')->get();
+            return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+            
+        }else{
+                return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => "Token expire"], 200);
+        
+            }
+    }
     public function postLogin(Request $request)
     {
         $this->validate($request, [

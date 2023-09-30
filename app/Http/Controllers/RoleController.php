@@ -18,8 +18,8 @@ class RoleController extends BaseController
             if($user){
                 if($user->account_id==0){
                     $where=array();
-                    $where[] = ['account_id', '!=', 0];
-                    $queryModel = Role::where($where)->get();
+                    $where[] = ['is_active', '==', 1];
+                    $queryModel = Role::where('is_active', '=', 1)->whereNotIn('id', [1,2])->get();
                    // $queryModel = Role::where('id', '!=' , 0);
                     return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
             
@@ -85,4 +85,5 @@ class RoleController extends BaseController
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
     }
+    
 }
