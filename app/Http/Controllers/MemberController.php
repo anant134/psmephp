@@ -45,7 +45,7 @@ class MemberController extends BaseController
             'registration_type_of_registration.*',
             'registration_type_of_membership.*',
             'registration_psme_chapter.*',
-            DB::raw('concat(registration_temp_personal_information.first_name," ",registration_temp_personal_information.middle_name," ",registration_temp_personal_information.last_name) as fullname' ),
+            DB::raw('concat(registration_temp_personal_information.first_name," ",registration_temp_personal_information.middle_name," ",registration_temp_personal_information.last_name," ",registration_temp_personal_information.suffix) as fullname' ),
             DB::raw('CASE WHEN  registration_type_of_registration.type_of_registration_id = 3 THEN "11THPMCH-VSTR-"
                      ELSE CONCAT("71STNC-",
                      CASE 
@@ -60,8 +60,11 @@ class MemberController extends BaseController
                         WHEN registration_type_of_registration.type_of_registration_id = 11 THEN "SVCP-"
                      END,  registration_temp_personal_information.personal_information_id)
                      END AS controlnumber'))
-            ->where('registration_temp_personal_information.status_of_transaction', '=', 'Paid')
-            ->where('registration_temp_personal_information.request_official_receipt', '=', 'true')
+            ->whereRaw(('case WHEN registration_temp_personal_information.personal_information_id=1 or registration_temp_personal_information.personal_information_id=5  THEN 
+            registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
+             ELSE true END'))
+            // ->where('registration_temp_personal_information.status_of_transaction', '=', 'Paid')
+            // ->where('registration_temp_personal_information.request_official_receipt', '=', 'true')
             ->groupby('registration_temp_personal_information.personal_information_id')->distinct()
             ->orderBy("registration_temp_personal_information.personal_information_id", "desc");
             if ($request->has('type')) {
