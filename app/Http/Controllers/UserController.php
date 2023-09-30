@@ -216,7 +216,7 @@ class UserController extends Controller
         try {
 
             $credentials = $request->only(['username', 'password']);
-            if (! $token = Auth::attempt($credentials)) {
+            if (! $token = Auth::attempt($credentials,['exp' => Carbon::now()->addDays(1)->timestamp])) {
                 
                 return response()->json([ "resultKey"=>0,
                                         "resultValue"=>[],
