@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\Member;
 use App\Models\MemberPersonalInformation;
 use App\Models\RegistrationType;
-
+use App\Models\MemberRegistrationLog;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -168,6 +168,25 @@ class MemberController extends BaseController
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
     }
+
+    public function saveMember(Request $request){
+        try {
+            $requestdata= $request->all();
+            $res= json_encode($requestdata);
+            $to_insert = [
+                "logdata" => $res
+            ];
+            $resdata = MemberRegistrationLog::updateOrCreate(["id" =>null], $to_insert);
+            
+            return response()->json(['resultKey' => 1, 'resultValue' => $resdata, 'errorCode' => null,'errorMsg' => null], 200);
+      
+            //code...
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+    }
+
+
 
    
 

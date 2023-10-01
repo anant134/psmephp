@@ -121,6 +121,7 @@ $router->group(['prefix'=>'api'],function($router){
     //member
     
     $router->post('searchmember','MemberController@SearchMember');
+    $router->post('saveMember','MemberController@saveMember');
 });
 
 
