@@ -31,6 +31,7 @@ class MemberController extends BaseController
         
     }
     public function updateControlnumber(){
+        $limitless_model = null;
         $member = DB::table('registration_temp_personal_information')
             ->whereRaw(('case WHEN registration_temp_personal_information.personal_information_id=1 or registration_temp_personal_information.personal_information_id=5  THEN 
             registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
@@ -41,15 +42,26 @@ class MemberController extends BaseController
                        
                         ->orderBy("registration_temp_personal_information.type_of_registration", "asc")
                         ->orderBy("registration_temp_personal_information.personal_information_id", "asc");
-                
+                $limitless_model = clone $member;  
                 $member=$member->get();
                 $type_of_registration=0;
                 $counter=0;
+               
                 for ($i=0; $i < $member->count(); $i++) {
                     if($type_of_registration !=$member[$i]->type_of_registration ) {
                         $type_of_registration =$member[$i]->type_of_registration;
-                        $last = MemberPersonalInformation::where("type_of_registration","=",$type_of_registration )->whereNotNull('controlnum')->orderBy('personal_information_id', 'DESC')->first();
-                        $counter=$last->controlnum+1;
+                        if($type_of_registration==1 || $type_of_registration==5){
+                            $last = MemberPersonalInformation::where("type_of_registration","=",$type_of_registration )
+                                ->where("status_of_transaction","=","Paid" )
+                                ->where("request_official_receipt","=","true" )
+                                ->whereNotNull('controlnum')->orderBy('personal_information_id', 'DESC')->first();
+                        }else{
+                            $last = MemberPersonalInformation::where("type_of_registration","=",$type_of_registration )
+                                ->whereNotNull('controlnum')
+                                ->orderBy('personal_information_id', 'DESC')->first();
+                        }
+                        
+                        $counter=empty($last)?0: $last->controlnum+1;
                     }
                     
                     if(empty($member[$i]->controlnum)){
@@ -83,19 +95,21 @@ class MemberController extends BaseController
             'registration_type_of_membership.*',
             'registration_psme_chapter.*',
             DB::raw('concat(registration_temp_personal_information.first_name," ",registration_temp_personal_information.middle_name," ",registration_temp_personal_information.last_name," ",registration_temp_personal_information.suffix) as fullname' ),
-            DB::raw('CASE WHEN  registration_type_of_registration.type_of_registration_id = 3 THEN "11THPMCH-VSTR-"
-                     ELSE CONCAT("71STNC-",
-                     CASE 
-                        WHEN registration_type_of_registration.type_of_registration_id = 1 THEN "DLGT-"  
-                        WHEN registration_type_of_registration.type_of_registration_id = 4 THEN "NBOT-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 5 THEN "CPRS-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 6 THEN "TDCH-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 7 THEN "PSTP-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 8 THEN "CHRP-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 9 THEN "CMMT-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 10 THEN "CMMT-"
-                        WHEN registration_type_of_registration.type_of_registration_id = 11 THEN "SVCP-"
-                     END,  registration_temp_personal_information.controlnum)
+            DB::raw('CASE WHEN  
+                            registration_type_of_registration.type_of_registration_id = 3 
+                           THEN CONCAT("11THPMCH-VSTR-",registration_temp_personal_information.controlnum)
+                           ELSE CONCAT("71STNC-",
+                                CASE 
+                                    WHEN registration_type_of_registration.type_of_registration_id = 1 THEN "DLGT-"  
+                                    WHEN registration_type_of_registration.type_of_registration_id = 4 THEN "NBOT-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 5 THEN "CPRS-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 6 THEN "TDCH-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 7 THEN "PSTP-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 8 THEN "CHRP-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 9 THEN "CMMT-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 10 THEN "CMMT-"
+                                    WHEN registration_type_of_registration.type_of_registration_id = 11 THEN "SVCP-"
+                                END,  registration_temp_personal_information.controlnum)
                      END AS controlnumber'))
             ->whereRaw(('case WHEN registration_temp_personal_information.personal_information_id=1 or registration_temp_personal_information.personal_information_id=5  THEN 
             registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
