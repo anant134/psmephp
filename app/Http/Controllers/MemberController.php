@@ -30,8 +30,45 @@ class MemberController extends BaseController
         
         
     }
+    public function updateControlnumber(){
+        $member = DB::table('registration_temp_personal_information')
+            ->whereRaw(('case WHEN registration_temp_personal_information.personal_information_id=1 or registration_temp_personal_information.personal_information_id=5  THEN 
+            registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
+             ELSE true END'))
+             ->where('registration_temp_personal_information.controlnum', '=', null)
+             ->groupby('registration_temp_personal_information.personal_information_id')->distinct()
+            
+                       
+                        ->orderBy("registration_temp_personal_information.type_of_registration", "asc")
+                        ->orderBy("registration_temp_personal_information.personal_information_id", "asc");
+                
+                $member=$member->get();
+                $type_of_registration=0;
+                $counter=0;
+                for ($i=0; $i < $member->count(); $i++) {
+                    if($type_of_registration !=$member[$i]->type_of_registration ) {
+                        $type_of_registration =$member[$i]->type_of_registration;
+                        $last = MemberPersonalInformation::where("type_of_registration","=",$type_of_registration )->whereNotNull('controlnum')->orderBy('personal_information_id', 'DESC')->first();
+                        $counter=$last->controlnum+1;
+                    }
+                    
+                    if(empty($member[$i]->controlnum)){
+                        $counter+=1;
+                        $member[$i]->controlnum=$counter;
+                       
+                        MemberPersonalInformation::where('personal_information_id',$member[$i]->personal_information_id)
+                        ->update(['controlnum' => $member[$i]->controlnum]);
+                        //::where(["personal_information_id" =>$member[$i]->personal_information_id], $to_insert);
+                    }
+                    
+                }
+       
+    }
     public function getAllMember(Request $request){
         try {
+            
+            $this->updateControlnumber();
+       
             $queryModel = DB::table('registration_temp_personal_information')
             ->leftJoin('registration_temp_professional_credentials', 'registration_temp_professional_credentials.personal_information_id', '=', 'registration_temp_personal_information.personal_information_id')
             ->leftJoin('registration_temp_psme_membership_verification', 'registration_temp_psme_membership_verification.personal_information_id', '=', 'registration_temp_personal_information.personal_information_id')
@@ -58,7 +95,7 @@ class MemberController extends BaseController
                         WHEN registration_type_of_registration.type_of_registration_id = 9 THEN "CMMT-"
                         WHEN registration_type_of_registration.type_of_registration_id = 10 THEN "CMMT-"
                         WHEN registration_type_of_registration.type_of_registration_id = 11 THEN "SVCP-"
-                     END,  registration_temp_personal_information.personal_information_id)
+                     END,  registration_temp_personal_information.controlnum)
                      END AS controlnumber'))
             ->whereRaw(('case WHEN registration_temp_personal_information.personal_information_id=1 or registration_temp_personal_information.personal_information_id=5  THEN 
             registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
