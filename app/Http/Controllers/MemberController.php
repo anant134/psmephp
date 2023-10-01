@@ -37,6 +37,7 @@ class MemberController extends BaseController
             registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
              ELSE true END'))
              ->where('registration_temp_personal_information.controlnum', '=', null)
+             ->where('registration_temp_personal_information.is_active', '=', 1)
              ->groupby('registration_temp_personal_information.personal_information_id')->distinct()
             
                        
@@ -115,7 +116,7 @@ class MemberController extends BaseController
             registration_temp_personal_information.status_of_transaction = "Paid" and registration_temp_personal_information.request_official_receipt="true"
              ELSE true END'))
             // ->where('registration_temp_personal_information.status_of_transaction', '=', 'Paid')
-            // ->where('registration_temp_personal_information.request_official_receipt', '=', 'true')
+             ->where('registration_temp_personal_information.is_active', '=', 1)
             ->groupby('registration_temp_personal_information.personal_information_id')
             ->distinct('registration_temp_personal_information.email_address')
             ->orderBy("registration_temp_personal_information.personal_information_id", "desc");
@@ -133,7 +134,31 @@ class MemberController extends BaseController
         }
         
     }
+    public function removeDuplicate(Request $request){
+       $member= DB::select('select count(*) as cnt,registration_temp_personal_information.email_address,registration_temp_personal_information.contact_number
+       from registration_temp_personal_information group by email_address,contact_number
+       having count(*)>1');
+      // $memberdata=clone $member;
+      // $memberdata=$member->get();
+        for ($i=0; $i < count($member); $i++) { 
+            $memberda= MemberPersonalInformation::where('email_address',$member[$i]->email_address)
+            ->where('contact_number',$member[$i]->contact_number)
+            ->orderBy('personal_information_id', 'desc')
+            ->first();
+            MemberPersonalInformation::where('email_address',$member[$i]->email_address)
+            ->where('contact_number',$member[$i]->contact_number)
+            ->orderBy('personal_information_id', 'asc')
+            ->update(['is_active' =>0]);
+            MemberPersonalInformation::where('personal_information_id',$memberda->personal_information_id)
+            ->update(['is_active' =>1]);
+           
+        }
 
+
+        return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
+       
+
+    }
     public function getRegistrationType(Request $request){
         try {
             $queryModel = RegistrationType::query();
