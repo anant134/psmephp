@@ -116,7 +116,8 @@ class MemberController extends BaseController
              ELSE true END'))
             // ->where('registration_temp_personal_information.status_of_transaction', '=', 'Paid')
             // ->where('registration_temp_personal_information.request_official_receipt', '=', 'true')
-            ->groupby('registration_temp_personal_information.personal_information_id')->distinct()
+            ->groupby('registration_temp_personal_information.personal_information_id')
+            ->distinct('registration_temp_personal_information.email_address')
             ->orderBy("registration_temp_personal_information.personal_information_id", "desc");
             if ($request->has('type')) {
                 $filter_key = trim($request->get('type'));
