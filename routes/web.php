@@ -30,6 +30,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->get('getUser','UserController@getuserinfor');
         $router->get('getAllUser','UserController@getAlluser');
         $router->post('updateuser','UserController@updateuser');
+        $router->post('saveuser','UserController@addUpdateUser');
     });
     //transaction
     $router->group(['prefix'=>'transaction'],function($router){
@@ -51,6 +52,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
      //Role
      $router->group(['prefix'=>'role'],function($router){
         $router->get('getRole','RoleController@getRole');
+        $router->get('getRoleoption','RoleController@getRoleoption');
         $router->get('getRoleByID','RoleController@getRoleByID');
         $router->post('addUpdateRole','RoleController@addUpdateRole');
     });

@@ -293,6 +293,40 @@ class UserController extends Controller
             'userinfo'=>$user]
         ]);
     }
+
+    public function addUpdateUser(Request $request){
+        try {
+            
+                DB::beginTransaction();
+                    $user= auth()->user();
+                    $this->validate($request, [
+                        'username' => 'required',
+                        'role_id' => 'required'
+                    ]);
+                    $queryModel=User::where('id',$request->get("id", null))
+                    ->first();
+                    $to_insert = [
+                        "username" => $request->get("username", null),
+                        "role_id" => $request->get("role_id", null),
+                        "is_active"=> $request->get("isactive", null),
+                    ];
+                    $user = User::updateOrCreate(["id" =>$request->get("id", null)], $to_insert);
+                    if(empty($request->get("id", null))){
+                        $encrytpass=Hash::make('1234');
+                        $user->password=$encrytpass;
+                        $user->save();
+                    }
+                    $userres = User::where('id', '=', $user->id)->whereNotIn('role_id', [1,2])->with('role')->get();
+                DB::commit();
+                    return response()->json(["resultValue" => $userres, 'resultKey' => 1, 'defaultError' => null, 'resultResponse' => ''], 200);
+        
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(["resultValue" => "", 'resultKey' => 0, 'defaultError' => $e->getMessage(), 'resultResponse' => ''], 200);
+       
+        }
+        
+    }
     
    
 }
