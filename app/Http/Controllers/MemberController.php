@@ -97,7 +97,7 @@ class MemberController extends BaseController
             'registration_type_of_membership.*',
             'registration_psme_chapter.*',
             DB::raw('concat(registration_temp_personal_information.first_name," ",
-            case when LENGTH(registration_temp_personal_information.middle_name)>1 then
+            case when LENGTH(registration_temp_personal_information.middle_name)>0 then
              Concat(upper(SUBSTRING(registration_temp_personal_information.middle_name, 1, 1)),".")
              else "" end,
             " ",registration_temp_personal_information.last_name," ",registration_temp_personal_information.suffix) as fullname' ),
