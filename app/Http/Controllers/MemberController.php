@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\Member;
 use App\Models\MemberPersonalInformation;
 use App\Models\RegistrationType;
+use App\Models\MemberType;
 use App\Models\MemberRegistrationLog;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller as BaseController;
@@ -95,7 +96,11 @@ class MemberController extends BaseController
             'registration_type_of_registration.*',
             'registration_type_of_membership.*',
             'registration_psme_chapter.*',
-            DB::raw('concat(registration_temp_personal_information.first_name," ",registration_temp_personal_information.middle_name," ",registration_temp_personal_information.last_name," ",registration_temp_personal_information.suffix) as fullname' ),
+            DB::raw('concat(registration_temp_personal_information.first_name," ",
+            case when LENGTH(registration_temp_personal_information.middle_name)>1 then
+             Concat(upper(SUBSTRING(registration_temp_personal_information.middle_name, 1, 1)),".")
+             else "" end,
+            " ",registration_temp_personal_information.last_name," ",registration_temp_personal_information.suffix) as fullname' ),
             DB::raw('CASE WHEN  
                             registration_type_of_registration.type_of_registration_id = 3 
                            THEN CONCAT("11THPMCH-VSTR-",registration_temp_personal_information.controlnum)
@@ -164,6 +169,40 @@ class MemberController extends BaseController
             $queryModel = RegistrationType::query();
             $queryModel = $queryModel->get();
             return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+    }
+    public function getMemberType(Request $request){
+        try {
+            $queryModel = MemberType::query();
+            $queryModel = $queryModel->get();
+            return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+    }
+    public function saveMemberType(Request $request){
+        try {
+            $requestdata= $request->all();
+            $to_insert = [
+                "facetoface" => $request->get("facetoface", null),
+                "virtual"=>$request->get("virtual", null),
+                "type_of_membership_description"=>$request->get("type_of_membership_description", null)
+            ];
+            $membertype;
+            if(empty($request->get("id", null))){
+                //insert
+            }else{
+                $membertype = MemberType::where("type_of_membership_id", $request->get("id", null))->first();
+                $membertype->facetoface=$request->get("facetoface", null) ;
+                $membertype->virtual=$request->get("virtual", null) ;
+                $membertype->type_of_membership_description=$request->get("type_of_membership_description", null) ;
+                $membertype->save();
+              
+            }
+            //$resdata = MemberType::updateOrCreate(["type_of_membership_id" => $request->get("id", null)], $to_insert);
+            return response()->json(['resultKey' => 1, 'resultValue' => $membertype, 'errorCode' => null,'errorMsg' => null], 200);
         } catch (\Exception $ex) {
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
