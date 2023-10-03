@@ -68,8 +68,30 @@ class MemberController extends BaseController
                     
                     if(empty($member[$i]->controlnum)){
                         $counter+=1;
-                        $member[$i]->controlnum=$counter;
-                       
+                      //  $member[$i]->controlnum=$counter;
+                        switch (strlen($counter)) {
+                            case 1:
+                                $member[$i]->controlnum="00000".$counter;
+                            break;
+                            case 2:
+                                $member[$i]->controlnum="0000".$counter;
+                            break;
+                            case 3:
+                                $member[$i]->controlnum="000".$counter;
+                            break;
+                            case 4:
+                                $member[$i]->controlnum="00".$counter;
+                            break;
+                            case 5:
+                                $member[$i]->controlnum="0".$counter;
+                            break;
+                            case 6:
+                                $member[$i]->controlnum=$counter;
+                            break;
+                            default:
+                                # code...
+                                break;
+                        }
                         MemberPersonalInformation::where('personal_information_id',$member[$i]->personal_information_id)
                         ->update(['controlnum' => $member[$i]->controlnum]);
                         //::where(["personal_information_id" =>$member[$i]->personal_information_id], $to_insert);
