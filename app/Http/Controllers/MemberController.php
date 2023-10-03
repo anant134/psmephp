@@ -182,8 +182,41 @@ class MemberController extends BaseController
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
     }
+    public function deletemember(Request $request){
+        try {
+            $this->validate($request, [
+                'id' => 'required'
+            ]);
+            $member = MemberPersonalInformation::find($request->id)->update(["is_active"=>0]);
+            return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
+       
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+    }
+    public function updateMember(Request $request){
+        try {   
+            $this->validate($request, [
+                'id' => 'required'
+            ]);
+            $member = MemberPersonalInformation::find($request->id)->update(
+                ["type_of_registration"=>$request->get("type_of_registration", null),
+                "status_of_transaction"=>$request->get("status_of_transaction", null)]);
+            return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
+       
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+    }
     public function saveMemberType(Request $request){
         try {
+            $this->validate($request, [
+                'facetoface' => 'required',
+                'virtual' => 'required',
+                'type_of_membership_description' => 'required'
+            ]);
             $requestdata= $request->all();
             $to_insert = [
                 "facetoface" => $request->get("facetoface", null),

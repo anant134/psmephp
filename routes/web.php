@@ -71,6 +71,9 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->get('getMemberType','MemberController@getMemberType');
         $router->post('saveMemberType','MemberController@saveMemberType');
         $router->get('removeDuplicate','MemberController@removeDuplicate');
+        $router->post('deletemember','MemberController@deletemember');
+        $router->post('updateMember','MemberController@updateMember');
+        
         
     });
 });
