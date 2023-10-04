@@ -127,6 +127,7 @@ $router->group(['prefix'=>'api'],function($router){
     
     $router->post('searchmember','MemberController@SearchMember');
     $router->post('saveMember','MemberController@saveMember');
+    $router->get('getChartData','MemberController@getChartData');
 });
 
 
