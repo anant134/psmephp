@@ -103,14 +103,13 @@ class MemberController extends BaseController
     public function getChartData(Request $request){
         try {
             $cards = DB::select("select count(type_of_registration) as count,type_of_registration,registration_type_of_registration.type_of_registration_description 
-            from registration_temp_personal_information
-            left join registration_type_of_registration on registration_type_of_registration.type_of_registration_id=registration_temp_personal_information.type_of_registration
+            from eventregistration
+            left join registration_type_of_registration on registration_type_of_registration.type_of_registration_id=eventregistration.type_of_registration
             where 
-                    case WHEN registration_temp_personal_information.personal_information_id=1 or registration_temp_personal_information.personal_information_id=5  THEN 
-                                registration_temp_personal_information.status_of_transaction = 'Paid'
-                                 and registration_temp_personal_information.request_official_receipt=true
-                                 ELSE true END and registration_temp_personal_information.is_active=1
-                    group by registration_temp_personal_information.type_of_registration");
+                    case WHEN eventregistration.type_of_registration=1 or eventregistration.type_of_registration=5  THEN 
+                                eventregistration.status_of_transaction = 1
+                                 ELSE true END and eventregistration.is_active=1
+                    group by eventregistration.type_of_registration");
        // $queryModel = $cards->get();
         return response()->json(['resultKey' => 1, 'resultValue' => $cards, 'errorCode' => null,'errorMsg' => null], 200);
      
@@ -279,10 +278,10 @@ class MemberController extends BaseController
     }
     public function deletemember(Request $request){
         try {
-            $this->validate($request, [
-                'id' => 'required'
-            ]);
-            $member = MemberPersonalInformation::find($request->id)->update(["is_active"=>0]);
+            // $this->validate($request, [
+            //     'id' => 'required'
+            // ]);
+            // $member = MemberPersonalInformation::find($request->id)->update(["is_active"=>0]);
             return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
        
         } catch (\Exception $ex) {
