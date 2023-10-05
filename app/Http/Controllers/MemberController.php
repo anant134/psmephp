@@ -121,6 +121,60 @@ class MemberController extends BaseController
     }
     public function getAllMember(Request $request){
         try {
+        $queryModel = DB::table('eventregistration')
+        ->leftJoin('registration_type_of_registration', 'registration_type_of_registration.type_of_registration_id', '=', 'eventregistration.type_of_registration')
+            ->leftJoin('registration_type_of_membership', 'registration_type_of_membership.type_of_membership_id', '=', 'eventregistration.type_of_membership')
+            ->leftJoin('registration_psme_chapter', 'registration_psme_chapter.psme_chapter_id', '=', 'eventregistration.psme_chapter')
+           
+        ->select('eventregistration.*', 
+        'registration_type_of_registration.*',
+        'registration_type_of_membership.*',
+        'registration_psme_chapter.*',
+        DB::raw('concat(eventregistration.first_name," ",
+        case when LENGTH(eventregistration.middle_name)>0 then
+         Concat(upper(SUBSTRING(eventregistration.middle_name, 1, 1)),".")
+         else "" end,
+        " ",eventregistration.last_name," ",eventregistration.suffix) as fullname' ),
+        DB::raw('CASE WHEN  
+        eventregistration.type_of_registration = 3 
+                       THEN CONCAT("11THPMCH-VSTR-",eventregistration.controlnum)
+                       ELSE CONCAT("71STNC-",
+                            CASE 
+                                WHEN eventregistration.type_of_registration = 1 THEN "DLGT-"  
+                                WHEN eventregistration.type_of_registration = 4 THEN "NBOT-"
+                                WHEN eventregistration.type_of_registration = 5 THEN "CPRS-"
+                                WHEN eventregistration.type_of_registration = 6 THEN "TDCH-"
+                                WHEN eventregistration.type_of_registration = 7 THEN "PSTP-"
+                                WHEN eventregistration.type_of_registration = 8 THEN "CHRP-"
+                                WHEN eventregistration.type_of_registration = 9 THEN "CMMT-"
+                                WHEN eventregistration.type_of_registration = 10 THEN "CMMT-"
+                                WHEN eventregistration.type_of_registration = 11 THEN "SVCP-"
+                            END,  eventregistration.controlnum)
+                 END AS controlnumber'))
+        ->whereRaw(('case WHEN eventregistration.type_of_registration=1 or eventregistration.type_of_registration=5  THEN 
+        eventregistration.status_of_transaction = 1
+         ELSE true END'))
+        ->where('eventregistration.is_active', '=', 1)
+        
+            ->groupby('eventregistration.id')
+            ->distinct('eventregistration.email_address')
+            ->orderBy("eventregistration.id", "desc");
+            if ($request->has('type')) {
+                $filter_key = trim($request->get('type'));
+                if(!empty( $filter_key)){
+                    $queryModel = $queryModel->where('registration_temp_personal_information.type_of_registration', '=', $filter_key);
+                }
+            }
+            
+            $queryModel = $queryModel->get();
+            return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+    }
+    public function getAllMember_old(Request $request){
+        try {
             
             $this->updateControlnumber();
        
