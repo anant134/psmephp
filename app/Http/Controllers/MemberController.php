@@ -7,6 +7,7 @@ use App\Models\MemberPersonalInformation;
 use App\Models\RegistrationType;
 use App\Models\MemberType;
 use App\Models\MemberRegistrationLog;
+use App\Models\EventRegistartion;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -350,6 +351,89 @@ class MemberController extends BaseController
         } catch (\Exception $ex) {
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
+    }
+
+    public function saveBulkUpload(Request $request){
+        try {
+            DB::beginTransaction();
+            $this->validate($request, [
+                'bulkuploadfile' => 'required'
+            ]);
+            $bulkfile=$request->get('bulkuploadfile', null);
+
+            for ($i=0; $i < count($bulkfile); $i++) {
+                $bulkfile[$i]['bulkstatus']=false;
+                $bulkfile[$i]['bulkreason']=""; 
+                $bfile=$bulkfile[$i];
+                //check if exist
+                $queryModel = DB::table('eventregistration')
+                
+                ->where('eventregistration.email_address', $bfile['email_address'])
+                ->orWhere('eventregistration.contact_number', $bfile['contact_number'])
+                ->orWhere('eventregistration.prc_license_number', $bfile['prc_license_number']);
+                $queryModel = $queryModel->get();
+                if(count($queryModel)){
+                    $bulkfile[$i]['bulkstatus']=false;
+                    $bulkfile[$i]['bulkreason']="Already exist";
+                }else{
+                    //get control number 
+                    $qry="select count(*) as cntnumber 
+                    from eventregistration where status_of_transaction=1 
+                    and is_active=1 
+                    and type_of_registration=".$bfile['type_of_registration'];
+                    $resqry= DB::select($qry);
+                    $cntnumber=$resqry[0]->cntnumber+1;
+                    $to_insertlog = [
+                        "first_name"=>$bulkfile[$i]['first_name'],
+                        "middle_name"=>$bulkfile[$i]['middle_name'],
+                        "last_name"=>$bulkfile[$i]['last_name'],
+                        "suffix"=>$bulkfile[$i]['suffix'],
+                        "gender"=>$bulkfile[$i]['gender'],
+                        "birth_date"=>$bulkfile[$i]['birth_date'],
+                        "complete_address"=>$bulkfile[$i]['complete_address'],
+                        "zip_code"=>$bulkfile[$i]['zip_code'],
+                        "contact_number"=>$bulkfile[$i]['contact_number'],
+                        "email_address"=>$bulkfile[$i]['email_address'],
+                        "sector"=>$bulkfile[$i]['sector'],
+                        "company_name"=>$bulkfile[$i]['company_name'],
+                        "job_title"=>$bulkfile[$i]['job_title'],
+                        "industry"=>$bulkfile[$i]['industry'],
+                        "type_of_registrant"=>$bulkfile[$i]['type_of_registrant'],
+                        "type_of_registration"=>$bulkfile[$i]['type_of_registration'],
+                        "status_of_transaction"=>1,
+                        "eventtype"=>$bulkfile[$i]['eventtype'],
+                        "eventid"=>$bulkfile[$i]['eventid'],
+                        "prc_license_number"=>$bulkfile[$i]['prc_license_number'],
+                        "prc_license_date_of_registration"=>$bulkfile[$i]['prc_license_date_of_registration'],
+                        "prc_license_date_of_expiration"=>$bulkfile[$i]['prc_license_date_of_expiration'],
+                        "pwd_id_number"=>$bulkfile[$i]['pwd_id_number'],
+                        "type_of_membership"=>$bulkfile[$i]['type_of_membership'],
+                        "psme_chapter"=>$bulkfile[$i]['psme_chapter'],
+                        "prc_sequence_number"=>$bulkfile[$i]['prc_sequence_number'],
+                        "month_passed"=>$bulkfile[$i]['month_passed'],
+                        "controlnum"=>$cntnumber,
+                        "isbulkuploaded"=>1,
+                    ];
+                     $eventre= EventRegistartion::updateOrCreate(["id" => null], $to_insertlog);
+                     $bulkfile[$i]['bulkstatus']=true;
+                     $bulkfile[$i]['bulkreason']="";
+                }
+                //if not add member
+                
+
+            }
+
+            //code...
+            DB::commit();
+                return response()->json(['resultKey' => 1, 'resultValue' => $bulkfile, 'errorCode' => null,'errorMsg' => null], 200);
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+           
+
+
+
     }
 
 

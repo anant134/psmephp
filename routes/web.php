@@ -73,7 +73,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->get('removeDuplicate','MemberController@removeDuplicate');
         $router->post('deletemember','MemberController@deletemember');
         $router->post('updateMember','MemberController@updateMember');
-        
+        $router->post('bulkuploadMember','MemberController@saveBulkUpload');
         
     });
 });
@@ -128,6 +128,7 @@ $router->group(['prefix'=>'api'],function($router){
     $router->post('searchmember','MemberController@SearchMember');
     $router->post('saveMember','MemberController@saveMember');
     $router->get('getChartData','MemberController@getChartData');
+   
 });
 
 
