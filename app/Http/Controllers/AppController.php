@@ -23,7 +23,7 @@ class AppController extends BaseController
             ]);
            
             $member_id=$request->get("member_id", null);
-            $memberdata=Member::find($member_id);
+            $memberdata=Member::where('member_id',$member_id);
             $claim=$request->get("claim", null);
             switch ($claim) {
                 case 'checkin':
