@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\Setting;
+use App\Models\EventRegistartion;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -107,4 +108,43 @@ class PaymentController extends BaseController
         foreach ($params as $key => $value) { $data_string .= $value . '|'; } 
         return sha1($data_string . $secret_key);
     }
+
+
+    public function checkPaystatusandupadte(Request $request){
+
+                $event=EventRegistartion::where('status_of_transaction',1)
+                ->where('reference_code',"<>","") ;
+                $event=$event->get();
+                for ($i=0; $i < count($event); $i++) {
+                    $apiURL ="https://api.smartpay.net.ph/order?reference_number=".$event[$i]->reference_code ;
+                    $headers = [
+                        'Authorization' => 'Bearer zaRCpNqgwvGkP2QH'
+                    ];
+                    $response = Http::withHeaders($headers)->get($apiURL);
+                    $statusCode = $response->status();
+                    $responseBody = json_decode($response->getBody(), true);
+                    $s="";
+                    $printdata=["code"=>$event[$i]->reference_code,"status"=>$responseBody["results"]["data"]["status"]];
+                    print_r($printdata);
+                    $updatevent=EventRegistartion::find($event[$i]->id);
+                    if($responseBody["results"]["data"]["status"]!="success"){
+                        $updatevent->status_of_transaction=0;
+                        $updatevent->save();
+                    }else{
+                        $updatevent->controlnum=null;
+                        $updatevent->save();
+                    }
+                    
+                }
+
+
+                
+                return response()->json(['resultKey' => 1, 'resultValue' => 1, 'errorCode' => null,'errorMsg' => null], 200);
+      
+
+    }
+
+
+
+
 }

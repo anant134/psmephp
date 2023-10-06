@@ -18,12 +18,19 @@ class AppController extends BaseController
     public function claim(Request $request){
         try {
             $this->validate($request, [
-                'member_id' => 'required',
+                'id' => 'required',
                 'claim' => 'required',
             ]);
            
-            $member_id=$request->get("member_id", null);
-            $memberdata=Member::where('member_id',$member_id);
+            $id=$request->get("id", null);
+            $eventdata=EventRegistartion::find($id);
+            $memberdata=Member::find($id);
+            if($eventdata){
+                
+            }else{
+                $member= Member::updateOrCreate(["id" => null], $to_insert);
+                
+            }
             $claim=$request->get("claim", null);
             switch ($claim) {
                 case 'checkin':
@@ -62,6 +69,15 @@ class AppController extends BaseController
                         null, 'errorCode' => 'err1', 'defaultError' => 'Already Claimed'];
                     }
                 break;
+                case 'souveneir':
+                    $to_insert = [
+                     "souveneir" =>true
+                    ];
+                    if(!empty( $memberdata->souveneir)){
+                        return ['resultKey' => 0, 'resultValue' => 
+                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Claimed'];
+                    }
+                break;
                 case 'food':
                     $to_insert = [
                        "food" =>true
@@ -85,7 +101,7 @@ class AppController extends BaseController
                     # code...
                     break;
             }
-            
+           
             $member= Member::updateOrCreate(["id" => $member_id], $to_insert);
             $to_insertlog = [
                 "claimfor" =>$claim,

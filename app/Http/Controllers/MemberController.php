@@ -151,7 +151,7 @@ class MemberController extends BaseController
          else "" end,
         " ",eventregistration.last_name," ",eventregistration.suffix)) as fullname' ),
         DB::raw('CASE WHEN  
-        eventregistration.type_of_registration = 3 
+                            eventregistration.type_of_registration = 3 
                        THEN CONCAT("11THPMCH-VSTR-",eventregistration.controlnum)
                        ELSE CONCAT("71STNC-",
                             CASE 
@@ -164,7 +164,7 @@ class MemberController extends BaseController
                                 WHEN eventregistration.type_of_registration = 9 THEN "CMMT-"
                                 WHEN eventregistration.type_of_registration = 10 THEN "CMMT-"
                                 WHEN eventregistration.type_of_registration = 11 THEN "SVCP-"
-                            END,  eventregistration.controlnum)
+                            END,  concat(SUBSTRING("000000", 1, (6-LENGTH(eventregistration.controlnum))),eventregistration.controlnum))
                  END AS controlnumber'))
         ->whereRaw(('case WHEN eventregistration.type_of_registration=1 or eventregistration.type_of_registration=5  THEN 
         eventregistration.status_of_transaction = 1
@@ -451,8 +451,18 @@ class MemberController extends BaseController
 
     }
 
-
-
+    public function updateMemberControlnumber(Request $request)
+    {
+        $event=EventRegistartion::where('is_active',1)->where("type_of_registration",3)->orderBy("created_at", "asc");
+        $event=$event->get();
+        for ($i=0; $i < count($event); $i++) {
+            $updatevent=EventRegistartion::find($event[$i]->id);
+            $updatevent->controlnum=$i+1;
+            $updatevent->save();
+        }
+        return response()->json(['resultKey' => 1, 'resultValue' => 1, 'errorCode' => null,'errorMsg' => null], 200);
+      
+    }
    
 
 }
