@@ -130,11 +130,11 @@ class MemberController extends BaseController
         'registration_type_of_registration.*',
         'registration_type_of_membership.*',
         'registration_psme_chapter.*',
-        DB::raw('concat(eventregistration.first_name," ",
+        DB::raw('upper(concat(eventregistration.first_name," ",
         case when LENGTH(eventregistration.middle_name)>0 then
          Concat(upper(SUBSTRING(eventregistration.middle_name, 1, 1)),".")
          else "" end,
-        " ",eventregistration.last_name," ",eventregistration.suffix) as fullname' ),
+        " ",eventregistration.last_name," ",eventregistration.suffix)) as fullname' ),
         DB::raw('CASE WHEN  
         eventregistration.type_of_registration = 3 
                        THEN CONCAT("11THPMCH-VSTR-",eventregistration.controlnum)
