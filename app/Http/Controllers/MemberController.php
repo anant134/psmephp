@@ -162,7 +162,7 @@ class MemberController extends BaseController
             if ($request->has('type')) {
                 $filter_key = trim($request->get('type'));
                 if(!empty( $filter_key)){
-                    $queryModel = $queryModel->where('registration_temp_personal_information.type_of_registration', '=', $filter_key);
+                    $queryModel = $queryModel->where('eventregistration.type_of_registration', '=', $filter_key);
                 }
             }
             
