@@ -13,6 +13,21 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 
 class MemberController extends BaseController
 {
+    public function getScanmember(Request $request){
+        try {
+                $user= auth()->user();
+                if($user){
+                    $member = Member::where('created_by',$user->id);
+                    $queryModel = $member->get();
+                    return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+            
+                }
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+
+    }
     public function SearchMember(Request $request){
         try {
             $filter_key = "";

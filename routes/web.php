@@ -74,6 +74,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->post('deletemember','MemberController@deletemember');
         $router->post('updateMember','MemberController@updateMember');
         $router->post('bulkuploadMember','MemberController@saveBulkUpload');
+        $router->get('getScanmember','MemberController@getScanmember');
         
     });
 });
