@@ -22,7 +22,7 @@ class MemberController extends BaseController
             }
             $queryModel = DB::table('eventregistration');
             if ($filter_key) {
-                $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,prc_license_number,controlnumber) like ?', ["%" . $filter_key . "%"]);
+                $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,prc_license_number,controlnum) like ?', ["%" . $filter_key . "%"]);
             }
             $queryModel = $queryModel->get();
             return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
