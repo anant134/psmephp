@@ -20,7 +20,7 @@ class MemberController extends BaseController
             if ($request->has('search')) {
                 $filter_key = trim($request->get('search'));
             }
-            $queryModel = DB::table('eventregistration');
+            $queryModel = DB::table('eventregistration')->where('status_of_transaction',1);
             if ($filter_key) {
                 $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,prc_license_number,controlnum) like ?', ["%" . $filter_key . "%"]);
             }
