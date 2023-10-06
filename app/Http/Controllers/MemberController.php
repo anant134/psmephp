@@ -294,10 +294,10 @@ class MemberController extends BaseController
     }
     public function deletemember(Request $request){
         try {
-            // $this->validate($request, [
-            //     'id' => 'required'
-            // ]);
-            // $member = MemberPersonalInformation::find($request->id)->update(["is_active"=>0]);
+            $this->validate($request, [
+                'id' => 'required'
+            ]);
+            $member = EventRegistartion::find($request->id)->update(["is_active"=>0]);
             return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
        
         } catch (\Exception $ex) {
