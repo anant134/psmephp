@@ -9,15 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\ModelExtender;
 
-class Roleoption extends Model 
+class EventRegistrationTemp extends Model 
 {
     use SoftDeletes,ModelExtender;
     protected $auto_fillable = ["created_by", "updated_by"];
-    protected $table = 'roleoptions';
+    protected $table = 'eventregistration_temp';
     protected $guarded = ['id'];
-
-    public function menu()
-    {
-        return $this->belongsTo(Menus::class, 'menuid', 'id');
-    }
+    
+    
 }

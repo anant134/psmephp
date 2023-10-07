@@ -8,6 +8,9 @@ use App\Models\RegistrationType;
 use App\Models\MemberType;
 use App\Models\MemberRegistrationLog;
 use App\Models\EventRegistartion;
+use App\Models\EventRegistrationTemp;
+use App\Models\Chapter;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -180,7 +183,12 @@ class MemberController extends BaseController
                     $queryModel = $queryModel->where('eventregistration.type_of_registration', '=', $filter_key);
                 }
             }
-            
+            if ($request->has('eventtype')) {
+                $filter_key = trim($request->get('eventtype'));
+                if(!empty( $filter_key)){
+                    $queryModel = $queryModel->where('eventregistration.eventid', '=', $filter_key);
+                }
+            }
             $queryModel = $queryModel->get();
             return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
         } catch (\Exception $ex) {
@@ -370,86 +378,185 @@ class MemberController extends BaseController
 
     public function saveBulkUpload(Request $request){
         try {
-            DB::beginTransaction();
+            
             $this->validate($request, [
-                'bulkuploadfile' => 'required'
+                'file' => 'required'
             ]);
-            $bulkfile=$request->get('bulkuploadfile', null);
-
-            for ($i=0; $i < count($bulkfile); $i++) {
-                $bulkfile[$i]['bulkstatus']=false;
-                $bulkfile[$i]['bulkreason']=""; 
-                $bfile=$bulkfile[$i];
-                //check if exist
-                $queryModel = DB::table('eventregistration')
-                
-                ->where('eventregistration.email_address', $bfile['email_address'])
-                ->orWhere('eventregistration.contact_number', $bfile['contact_number'])
-                ->orWhere('eventregistration.prc_license_number', $bfile['prc_license_number']);
-                $queryModel = $queryModel->get();
-                if(count($queryModel)){
-                    $bulkfile[$i]['bulkstatus']=false;
-                    $bulkfile[$i]['bulkreason']="Already exist";
-                }else{
-                    //get control number 
-                    $qry="select count(*) as cntnumber 
-                    from eventregistration where status_of_transaction=1 
-                    and is_active=1 
-                    and type_of_registration=".$bfile['type_of_registration'];
-                    $resqry= DB::select($qry);
-                    $cntnumber=$resqry[0]->cntnumber+1;
-                    $to_insertlog = [
-                        "first_name"=>$bulkfile[$i]['first_name'],
-                        "middle_name"=>$bulkfile[$i]['middle_name'],
-                        "last_name"=>$bulkfile[$i]['last_name'],
-                        "suffix"=>$bulkfile[$i]['suffix'],
-                        "gender"=>$bulkfile[$i]['gender'],
-                        "birth_date"=>$bulkfile[$i]['birth_date'],
-                        "complete_address"=>$bulkfile[$i]['complete_address'],
-                        "zip_code"=>$bulkfile[$i]['zip_code'],
-                        "contact_number"=>$bulkfile[$i]['contact_number'],
-                        "email_address"=>$bulkfile[$i]['email_address'],
-                        "sector"=>$bulkfile[$i]['sector'],
-                        "company_name"=>$bulkfile[$i]['company_name'],
-                        "job_title"=>$bulkfile[$i]['job_title'],
-                        "industry"=>$bulkfile[$i]['industry'],
-                        "type_of_registrant"=>$bulkfile[$i]['type_of_registrant'],
-                        "type_of_registration"=>$bulkfile[$i]['type_of_registration'],
-                        "status_of_transaction"=>1,
-                        "eventtype"=>$bulkfile[$i]['eventtype'],
-                        "eventid"=>$bulkfile[$i]['eventid'],
-                        "prc_license_number"=>$bulkfile[$i]['prc_license_number'],
-                        "prc_license_date_of_registration"=>$bulkfile[$i]['prc_license_date_of_registration'],
-                        "prc_license_date_of_expiration"=>$bulkfile[$i]['prc_license_date_of_expiration'],
-                        "pwd_id_number"=>$bulkfile[$i]['pwd_id_number'],
-                        "type_of_membership"=>$bulkfile[$i]['type_of_membership'],
-                        "psme_chapter"=>$bulkfile[$i]['psme_chapter'],
-                        "prc_sequence_number"=>$bulkfile[$i]['prc_sequence_number'],
-                        "month_passed"=>$bulkfile[$i]['month_passed'],
-                        "controlnum"=>$cntnumber,
-                        "isbulkuploaded"=>1,
-                    ];
-                     $eventre= EventRegistartion::updateOrCreate(["id" => null], $to_insertlog);
-                     $bulkfile[$i]['bulkstatus']=true;
-                     $bulkfile[$i]['bulkreason']="";
-                }
-                //if not add member
-                
-
+            $bulkfile=file($request->file);
+            $chunks = array_chunk($bulkfile,10000);
+            
+            foreach ($chunks as $key => $chunk) {
+                $data = array_map('str_getcsv', $chunk);
+                    if($key == 0){
+                        $header = $data[0];
+                        unset($data[0]);
+                    }
+                    $this->bulkupload($data);
+                   // ItemCSVUploadJob::dispatch($data, $header);                
             }
+            // $count=1;
+            // $countasdasd=50;
+            // $intakesFormObjects = [];
+            // $to_insertlog=[];
+            // foreach ($data as $key => $val) {
+                
+            //     if($count==$countasdasd){
+            //         $countasdasd=$countasdasd+50;
+            //     }
+                
+              
+            //     if($data[$key][18]){
+            //         // $queryModel = DB::table('eventregistration_temp')
+                
+            //         // ->where('eventregistration_temp.email_address', $data[$key][9])
+            //         // ->orWhere('eventregistration_temp.contact_number', $data[$key][8])
+            //         // ->orWhere('eventregistration_temp.prc_license_number', $data[$key][18]);
+            //         // $queryModel = $queryModel->get();
+            //         // if(count($queryModel)){
+                       
+            //         // }else{
+            //             // $qry="select count(*) as cntnumber 
+            //             // from eventregistration_temp where status_of_transaction=1 
+            //             // and is_active=1  and controlnum is not null
+            //             // and type_of_registration=".$data[$key][18];
+            //             // $resqry= DB::select($qry);
+            //             // $cntnumber=$resqry[0]->cntnumber+1;
+            //             $dataobj=[
+            //                 "first_name"=>$data[$key][0],
+            //                 "middle_name"=>$data[$key][1],
+            //                 "last_name"=>$data[$key][2],
+            //                 "suffix"=>$data[$key][3],
+            //                  "gender"=>$data[$key][4],
+            //                  "birth_date"=>$data[$key][5],
+            //                  "complete_address"=>$data[$key][6],
+            //                  "zip_code"=>$data[$key][7],
+            //                  "contact_number"=>$data[$key][8],
+            //                  "email_address"=>$data[$key][9],
+            //                  "sector"=>$data[$key][10],
+            //                 "company_name"=>$data[$key][11],
+            //                 "job_title"=>$data[$key][12],
+            //                 "industry"=>$data[$key][13],
+            //                 "type_of_registration"=>$data[$key][14],
+            //                 "status_of_transaction"=>1,
+            //                 "eventtype"=>$data[$key][16],
+            //                 "eventid"=>$data[$key][17],
+            //                 "prc_license_number"=>$data[$key][18],
+            //                 "prc_license_date_of_registration"=>$data[$key][19],
+            //                 "prc_license_date_of_expiration"=>$data[$key][20],
+            //                 "type_of_membership"=>$data[$key][21],
+            //                 "psme_chapter"=>$data[$key][22],
+                           
+            //                 "isbulkuploaded"=>1,
+            //             ];
+
+            //             array_push($to_insertlog, $dataobj);
+            //             $to_insertlog[] = $dataobj;
+            //             $count=$count+1;
+                        
+            //        // }
+            //     }
+                
+            // }
+            
+
+
+
+            // DB::beginTransaction();
+            // $intakesFormObjects[]= EventRegistrationTemp::insert($to_insertlog);
+            //             //EventRegistrationTemp::updateOrCreate(["id" => null], $to_insertlog);
+                        
+            //             DB::commit();
+           
+           
+           
 
             //code...
-            DB::commit();
-                return response()->json(['resultKey' => 1, 'resultValue' => $bulkfile, 'errorCode' => null,'errorMsg' => null], 200);
+           
+                return response()->json(['resultKey' => 1, 'resultValue' => [], 'errorCode' => null,'errorMsg' => null], 200);
         } catch (\Exception $ex) {
             DB::rollBack();
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
            
+    }
 
+    public function bulkupload($data){
+        $intakesFormObjects = [];
+        $to_insertlog=[];
+        foreach ($data as $key => $val) {
+            //if($data[$key][18]){
+                        $dataobj=[
+                            "first_name"=>$data[$key][0],
+                            "middle_name"=>$data[$key][1],
+                            "last_name"=>$data[$key][2],
+                            "suffix"=>$data[$key][3],
+                             "gender"=>$data[$key][4],
+                             "birth_date"=>$data[$key][5],
+                             "complete_address"=>$data[$key][6],
+                             "zip_code"=>$data[$key][7],
+                             "contact_number"=>$data[$key][8],
+                             "email_address"=>$data[$key][9],
+                             "sector"=>$data[$key][10],
+                            "company_name"=>$data[$key][11],
+                            "job_title"=>$data[$key][12],
+                            "industry"=>$data[$key][13],
+                            "type_of_registration"=>$data[$key][14],
+                            "status_of_transaction"=>1,
+                            "eventtype"=>$data[$key][16],
+                            "eventid"=>$data[$key][17],
+                            "prc_license_number"=>$data[$key][18],
+                            "prc_license_date_of_registration"=>$data[$key][19],
+                            "prc_license_date_of_expiration"=>$data[$key][20],
+                            "type_of_membership"=>$data[$key][21],
+                            "psme_chapter"=>$data[$key][22],
+                           
+                            "isbulkuploaded"=>1,
+                        ];
+                        array_push($to_insertlog, $dataobj);
+                       // $to_insertlog[] = $dataobj;
+                
+              //  }
+                
+        }
+        DB::beginTransaction();
+        
+            $intakesFormObjects[]= EventRegistartion::insert($to_insertlog);
+            
+        DB::commit();
+        //control num
+        $eventreg=EventRegistartion::where("is_active",1)->where("isbulkuploaded",1)->where("controlnum",null);
+
+        $eventreg=$eventreg->get();
+        $evenRegistype= DB::select('select count(*) as cnt,type_of_registration
+        from eventregistration where is_active=1 and isbulkuploaded=1  group by type_of_registration');
+        
+
+        foreach ($evenRegistype as $key => $value) {
+            $cnt=1;
+            $qry=DB::select("select controlnum 
+            from eventregistration where status_of_transaction=1 
+            and is_active=1  and controlnum is not null
+            and type_of_registration=".$evenRegistype[$key]->type_of_registration." order by controlnum desc limit 1");
+            if($qry){
+                $cnt=$qry[0]->controlnum+1;
+            }
+            
+            $s="";
+            foreach ($eventreg as $key => $value) {
+                $eventreg[$key]->controlnum=$cnt;
+                $eventreg[$key]->save();
+                $cnt=$cnt+1;
+            }
+            # code...
+        }
+
+        
+       
+        
 
 
     }
+
 
     public function updateMemberControlnumber(Request $request)
     {

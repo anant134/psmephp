@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Menus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -227,8 +228,58 @@ class UserController extends Controller
 
             $userinfor=auth()->user();
             $userr= User::where('id',$userinfor->id)->with('role')->get();
-            return $this->respondWithTokenWithUser($token,$userr);
 
+            $defaultmenu = Menus::where('is_active', '=', 1)->get();
+            $menuacc=[];
+            foreach ($defaultmenu as $key => $value) {
+                # code...
+                // $data=[
+                //     "icon"=>"pi pi-fw pi-home",
+                    
+                //     "routerLink"=>['/admin/dashboard'],
+                // ];
+                $mastermenu=[
+                    "label"=>$defaultmenu[$key]->name,
+                ];
+                $json= json_decode($defaultmenu[$key]->menujson);
+                
+                if($json){
+                    foreach ($json as $mkey => $mvalue) {
+                        if(property_exists($json[$mkey], "items")){
+                            $submenus=$json[$mkey]->items;
+                            $mastermenu["items"]=[];
+                            $submenuitem=[];
+                            foreach ($submenus as $skey => $svalue) {
+                                # code...
+                                
+                                $sitem=[];
+                                $sitem["label"]=$submenus[$skey]->label;
+                                $sitem["routerLink"]=$submenus[$skey]->routerLink;
+                                $sitem["icon"]=$submenus[$skey]->icon;
+                                $submenuitem[]= $sitem;
+                                
+                            }
+                            $mastermenu["items"]=$submenuitem;
+                        }else{
+                            $mastermenu["routerLink"]=$json[$mkey]->routerLink;
+                            $mastermenu["icon"]=$json[$mkey]->icone;
+                        }
+                        
+                        
+                    }
+                }
+                $menuacc[]=(object) $mastermenu;
+                // if($json){
+                //     $menuacc[]=$json;
+                // }
+
+                
+
+                
+            }   
+
+           
+            return $this->respondWithTokenWithUser($token,$userr,$menuacc);
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
 
             return response()->json([ "resultKey"=>0,
@@ -254,7 +305,7 @@ class UserController extends Controller
             "errorMsg" => $e->getMessage()
             ], 200);
         } catch (\Exception $e) {
-            return response()->json([ "resultKey"=>0,
+                return response()->json([ "resultKey"=>0,
             "resultValue"=>[],
             "errorCode" => 604,
             "errorMsg" => $e->getMessage()
@@ -282,15 +333,16 @@ class UserController extends Controller
             'token_type' => 'bearer',
         ]);
     }
-    protected function respondWithTokenWithUser($token,$user)
+    protected function respondWithTokenWithUser($token,$user,$role)
     {
             $user->access_token=$token;
-       // ['resultKey' => 1, 'resultValue' => $data, 'errorCode' => null,'errorMsg' => null], 200
         return response()->json([  
             "resultKey"=>1,
             "resultValue"=>[
             'access_token'=>$token,
-            'userinfo'=>$user]
+            'userinfo'=>$user,
+            'role' => $role
+            ]
         ]);
     }
 
@@ -327,6 +379,7 @@ class UserController extends Controller
         }
         
     }
+    
     
    
 }

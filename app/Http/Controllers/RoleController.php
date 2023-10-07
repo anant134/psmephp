@@ -51,7 +51,7 @@ class RoleController extends BaseController
                 if($user->account_id==0){
                     $where=array();
                     $where[] = ['is_active', '==', 1];
-                    $queryModel = Roleoption::where('is_active', '=', 1)->get();
+                    $queryModel = Roleoption::where('is_active', '=', 1)->with('menu')->get();
                    // $queryModel = Role::where('id', '!=' , 0);
                     return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
             

@@ -9,15 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\ModelExtender;
 
-class Roleoption extends Model 
+class Chapter extends Model 
 {
     use SoftDeletes,ModelExtender;
     protected $auto_fillable = ["created_by", "updated_by"];
-    protected $table = 'roleoptions';
+    protected $table = 'psme_chapter';
     protected $guarded = ['id'];
 
-    public function menu()
-    {
-        return $this->belongsTo(Menus::class, 'menuid', 'id');
-    }
+  
 }
