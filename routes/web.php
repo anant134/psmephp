@@ -64,6 +64,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
     });
     $router->group(['prefix'=>'app'],function($router){
         $router->post('claim','AppController@claim');
+        $router->post('claimbyscan','AppController@claimbyscan');
     });
     $router->group(['prefix'=>'member'],function($router){
         $router->get('getAllMember','MemberController@getAllMember');
