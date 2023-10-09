@@ -67,6 +67,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
     });
     $router->group(['prefix'=>'member'],function($router){
         $router->get('getAllMember','MemberController@getAllMember');
+        $router->get('getMemberwithlimit','MemberController@getMemberwithlimit');
         $router->get('getRegistrationType','MemberController@getRegistrationType');
         $router->get('getMemberType','MemberController@getMemberType');
         $router->post('saveMemberType','MemberController@saveMemberType');
