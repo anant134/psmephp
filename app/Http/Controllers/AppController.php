@@ -86,7 +86,7 @@ class AppController extends BaseController
                         WHEN e.type_of_registration = 11 THEN "SVCP-"
                     END,  concat(SUBSTRING("000000", 1, (6-LENGTH(m.controlnumber))),m.controlnumber))
          END AS pcontrolnumber FROM psme.members m
-join eventregistration e on m.memberid=e.id where id="'.$member->id.'"');
+join eventregistration e on m.memberid=e.id where m.id="'.$member->id.'"');
 
 
             }
