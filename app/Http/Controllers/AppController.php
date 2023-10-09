@@ -68,15 +68,30 @@ class AppController extends BaseController
                             ];
                             MemberClaimLog::updateOrCreate(["id" => null],$to_insertlog);
                     }
-                  
                 }
 
-
+                $memberclaim = DB::select('SELECT m.*,CASE WHEN  
+                    e.type_of_registration = 3 
+               THEN CONCAT("11THPMCH-VSTR-",m.controlnumber)
+               ELSE CONCAT("71STNC-",
+                    CASE 
+                        WHEN e.type_of_registration = 1 THEN "DLGT-"  
+                        WHEN e.type_of_registration = 4 THEN "NBOT-"
+                        WHEN e.type_of_registration = 5 THEN "CPRS-"
+                        WHEN e.type_of_registration = 6 THEN "TDCH-"
+                        WHEN e.type_of_registration = 7 THEN "PSTP-"
+                        WHEN e.type_of_registration = 8 THEN "CHRP-"
+                        WHEN e.type_of_registration = 9 THEN "CMMT-"
+                        WHEN e.type_of_registration = 10 THEN "CMMT-"
+                        WHEN e.type_of_registration = 11 THEN "SVCP-"
+                    END,  concat(SUBSTRING("000000", 1, (6-LENGTH(m.controlnumber))),m.controlnumber))
+         END AS pcontrolnumber FROM psme.members m
+join eventregistration e on m.memberid=e.id where id="'.$member->id.'"');
 
 
             }
           
-            return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
+            return response()->json(['resultKey' => 1, 'resultValue' => $memberclaim, 'errorCode' => null,'errorMsg' => null], 200);
         } catch (\Exception $ex) {
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
