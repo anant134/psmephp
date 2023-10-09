@@ -59,9 +59,9 @@ join eventregistration e on m.memberid=e.id where claim="'.$request->type.'"');
             if ($request->has('search')) {
                 $filter_key = trim($request->get('search'));
             }
-            $queryModel = DB::table('eventregistration')->where('status_of_transaction',1);
+            $queryModel = DB::table('eventregistration')->where('is_active',1)->where('status_of_transaction',1);
             if ($filter_key) {
-                $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,prc_license_number,controlnum) like ?', ["%" . $filter_key . "%"]);
+                $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,controlnum) like ?', ["%" . $filter_key . "%"]);
             }
             $queryModel = $queryModel->get();
             return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
