@@ -20,10 +20,29 @@ class MemberController extends BaseController
 {
     public function getScanmember(Request $request){
         try {
+                $this->validate($request, [
+                    'type' => 'required',
+                ]);
                 $user= auth()->user();
                 if($user){
-                    $member = Member::where('created_by',$user->id);
-                    $queryModel = $member->get();
+                    $member = DB::select('SELECT m.id,m.name,m.claim,CASE WHEN  
+                    e.type_of_registration = 3 
+               THEN CONCAT("11THPMCH-VSTR-",m.controlnumber)
+               ELSE CONCAT("71STNC-",
+                    CASE 
+                        WHEN e.type_of_registration = 1 THEN "DLGT-"  
+                        WHEN e.type_of_registration = 4 THEN "NBOT-"
+                        WHEN e.type_of_registration = 5 THEN "CPRS-"
+                        WHEN e.type_of_registration = 6 THEN "TDCH-"
+                        WHEN e.type_of_registration = 7 THEN "PSTP-"
+                        WHEN e.type_of_registration = 8 THEN "CHRP-"
+                        WHEN e.type_of_registration = 9 THEN "CMMT-"
+                        WHEN e.type_of_registration = 10 THEN "CMMT-"
+                        WHEN e.type_of_registration = 11 THEN "SVCP-"
+                    END,  concat(SUBSTRING("000000", 1, (6-LENGTH(m.controlnumber))),m.controlnumber))
+         END AS controlnumber FROM psme.members m
+join eventregistration e on m.memberid=e.id where claim="'.$request->type.'"');
+                    $queryModel = $member;
                     return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
             
                 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Models\MemberClaimLog;
 use App\Models\AppSetting;
+use App\Models\EventRegistartion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller as BaseController;
@@ -23,94 +24,58 @@ class AppController extends BaseController
             ]);
            
             $id=$request->get("id", null);
-            $eventdata=EventRegistartion::find($id);
-            $memberdata=Member::find($id);
-            if($eventdata){
-                
+            $eventdata=EventRegistartion::where("id",$id)->where("is_active",1)->first();
+            if(empty($eventdata)){
+                return ['resultKey' => 0, 'resultValue' => 
+                        null, 'errorCode' => 'err1', 'defaultError' => 'Member not found'];
             }else{
-                $member= Member::updateOrCreate(["id" => null], $to_insert);
+                $claim=$request->get("claim", null);
                 
-            }
-            $claim=$request->get("claim", null);
-            switch ($claim) {
-                case 'checkin':
-                    $to_insert = [
-                        "checkin" =>Carbon::now()
-                    ];
-                    if(!empty( $memberdata->checkin)){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Checkin'];
+                $member= Member::where("memberid",$id)->where("claim",$claim);
+                if($member->count()>0){
+                    return ['resultKey' => 0, 'resultValue' => 
+                    null, 'errorCode' => 'err1', 'defaultError' => 'Already Claim'];
+                }else{
+                    $name=$eventdata->first_name." ".$eventdata->middle_name." ".$eventdata->last_name ;
+                    if ($claim=="food") {
+                            $foodcount=  Member::where("claim",$claim)->get();
+                            $foodcount=count($foodcount);
+                            $foodlimit=AppSetting::all()->first()->foodcount;
+                            if($foodcount>$foodlimit){
+                                return ['resultKey' => 0, 'resultValue' => 
+                                null, 'errorCode' => 'err1', 'defaultError' => 'Reach the limit'];
+                            }else{
+                                $member= Member::updateOrCreate(["id" => null], [
+                                    "claim"=>$claim, 
+                                    "memberid"=>$id,
+                                    "controlnumber"=>$eventdata->controlnum,
+                                    "name"=>$name]);
+                                    $to_insertlog = [
+                                        "claimfor" =>$claim,
+                                        "member_id"=>$id,
+                                    ];
+                                    MemberClaimLog::updateOrCreate(["id" => null],$to_insertlog);
+                            }
+                    }else{
+                        $member= Member::updateOrCreate(["id" => null], [
+                            "claim"=>$claim, 
+                            "memberid"=>$id,
+                            "controlnumber"=>$eventdata->controlnum,
+                            "name"=>$name]);
+                            $to_insertlog = [
+                                "claimfor" =>$claim,
+                                "member_id"=>$id,
+                            ];
+                            MemberClaimLog::updateOrCreate(["id" => null],$to_insertlog);
                     }
-                break;
-                case 'checkout':
-                    $to_insert = [
-                        "checkout" =>Carbon::now()
-                    ];
-                    if(!empty( $memberdata->checkout)){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Checkout'];
-                    }
-                break;
-                case 'exhibit':
-                    $to_insert = [
-                        "exhibit" =>true
-                    ];
-                    if(!empty( $memberdata->exhibit)){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Claimed'];
-                    }
-                break;
-                case 'souveneir':
-                    $to_insert = [
-                     "souveneir" =>true
-                    ];
-                    if(!empty( $memberdata->souveneir)){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Claimed'];
-                    }
-                break;
-                case 'souveneir':
-                    $to_insert = [
-                     "souveneir" =>true
-                    ];
-                    if(!empty( $memberdata->souveneir)){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Claimed'];
-                    }
-                break;
-                case 'food':
-                    $to_insert = [
-                       "food" =>true
-                    ];
-                    if(!empty( $memberdata->food)){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Already Claimed'];
-                    }
-                    $foodcount=MemberClaimLog::where('claimfor','food')->count();
-                    $foodlimit=AppSetting::all()->first()->foodcount;
-                    if($foodcount>=$foodlimit){
-                        return ['resultKey' => 0, 'resultValue' => 
-                        null, 'errorCode' => 'err1', 'defaultError' => 'Reach the limit'];
-                     
-                    }
+                  
+                }
 
-                   
-                break;
 
-                default:
-                    # code...
-                    break;
+
+
             }
-           
-            $member= Member::updateOrCreate(["id" => $member_id], $to_insert);
-            $to_insertlog = [
-                "claimfor" =>$claim,
-                "member_id"=>$member_id,
-            ];
-            MemberClaimLog::updateOrCreate(["id" => null],$to_insertlog);
-           
-           
-           
+          
             return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
         } catch (\Exception $ex) {
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
