@@ -75,6 +75,8 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->post('updateMember','MemberController@updateMember');
         
         $router->get('getScanmember','MemberController@getScanmember');
+        $router->get('getIndustry','MemberController@getIndustry');
+        $router->get('getChapter','MemberController@getChapter');
         
     });
 });

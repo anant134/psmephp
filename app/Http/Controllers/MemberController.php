@@ -10,6 +10,7 @@ use App\Models\MemberRegistrationLog;
 use App\Models\EventRegistartion;
 use App\Models\EventRegistrationTemp;
 use App\Models\Chapter;
+use App\Models\Industry;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller as BaseController;
@@ -300,6 +301,26 @@ class MemberController extends BaseController
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
     }
+    public function getChapter(Request $request){
+        try {
+            $queryModel = Chapter::query();
+            $queryModel = $queryModel->get();
+            return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+    }
+    public function getIndustry(Request $request){
+        try {
+            $queryModel = Industry::query();
+            $queryModel = $queryModel->get();
+            return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+    }
+
+
     public function deletemember(Request $request){
         try {
             $this->validate($request, [
