@@ -104,7 +104,7 @@ class AppController extends BaseController
                 'controlnum' => 'required',
                 'claim' => 'required',
             ]);
-            $eventdata = DB::select('select * from (SELECT e.*,CASE WHEN                     e.type_of_registration = 3               
+            $eventdata = DB::select('SELECT * from (SELECT e.*,CASE WHEN                     e.type_of_registration = 3               
             THEN CONCAT("11THPMCH-VSTR-",e.controlnum)              
             ELSE CONCAT("71STNC-",                   CASE                        
             WHEN e.type_of_registration = 1 THEN "DLGT-"                         
@@ -117,14 +117,15 @@ class AppController extends BaseController
              WHEN e.type_of_registration = 10 THEN "CMMT-"                      
              WHEN e.type_of_registration = 11 THEN "SVCP-"                   
              END,  concat(SUBSTRING("000000", 1, (6-LENGTH(e.controlnum))),e.controlnum))        
-             END AS pcontrolnumber FROM psme.eventregistration e) as temp where pcontrolnumber="'.$request->get("id", null).'";');
-
+             END AS pcontrolnumber FROM psme.eventregistration e) as temp where pcontrolnumber="'.$request->get("controlnum", null).'"');
+            
            // $id=$request->get("id", null);
             //$eventdata=EventRegistartion::where("id",$id)->where("is_active",1)->first();
             if(empty($eventdata)){
                 return ['resultKey' => 0, 'resultValue' => 
                         null, 'errorCode' => 'err1', 'defaultError' => 'Member not found'];
             }else{
+                $eventdata=$eventdata[0];
                 $claim=$request->get("claim", null);
                 
                 $member= Member::where("memberid",$eventdata->id)->where("claim",$claim);
