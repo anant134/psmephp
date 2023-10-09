@@ -98,7 +98,7 @@ join eventregistration e on m.memberid=e.id where claim="'.$request->type.'"');
                 ->distinct('eventregistration.email_address')
                 ->orderBy("eventregistration.id", "desc");
             if ($filter_key) {
-                $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,controlnum) like ?', ["%" . $filter_key . "%"]);
+                $queryModel = $queryModel->whereRaw('CONCAT_WS("",first_name,middle_name,last_name,email_address,controlnumber) like ?', ["%" . $filter_key . "%"]);
             }
             $queryModel = $queryModel->get();
             return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
