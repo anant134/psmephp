@@ -74,6 +74,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->get('removeDuplicate','MemberController@removeDuplicate');
         $router->post('deletemember','MemberController@deletemember');
         $router->post('updateMember','MemberController@updateMember');
+        $router->post('updateMemberalldata','MemberController@updateMemberalldata');
         
         $router->get('getScanmember','MemberController@getScanmember');
         $router->get('getIndustry','MemberController@getIndustry');

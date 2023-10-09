@@ -9,6 +9,7 @@ use App\Models\MemberType;
 use App\Models\MemberRegistrationLog;
 use App\Models\EventRegistartion;
 use App\Models\EventRegistrationTemp;
+use App\Models\EventregistrationLog;
 use App\Models\Chapter;
 use App\Models\Industry;
 use Illuminate\Support\Arr;
@@ -652,5 +653,56 @@ class MemberController extends BaseController
       
     }
    
+
+    public function updateMemberalldata(Request $request){
+        try {   
+            $this->validate($request, [
+                'id' => 'required'
+            ]);
+            
+        DB::beginTransaction();
+           $en= [   
+                "first_name"=>$request->get("first_name", null),
+                "middle_name"=>$request->get("middle_name", null),
+                "last_name"=>$request->get("last_name", null),
+                "suffix"=>$request->get("suffix", null),
+                "gender"=>$request->get("gender", null),
+                "birth_date"=>$request->get("birth_date", null),
+                "complete_address"=>$request->get("complete_address", null),
+                "zip_code"=>$request->get("zip_code", null),
+                "contact_number"=>$request->get("contact_number", null),
+                "email_address"=>$request->get("email_address", null),
+                "sector"=>$request->get("sector", null),
+                "company_name"=>$request->get("company_name", null),
+                "job_title"=>$request->get("job_title", null),
+                "industry"=>$request->get("industry", null),
+               // "type_of_registrant"=>$request->get("type_of_registrant", null),
+                //"type_of_registration"=>$request->get("type_of_registration", null),
+                "prc_license_number"=>$request->get("prc_license_number", null),
+                "prc_license_date_of_registration"=>$request->get("prc_license_date_of_registration", null),
+                "prc_license_date_of_expiration"=>$request->get("prc_license_date_of_expiration", null),
+                "pwd_id_number"=>$request->get("pwd_id_number", null),
+              //  "type_of_membership"=>$request->get("type_of_membership", null),
+                "psme_chapter"=>$request->get("psme_chapter", null),
+                "prc_sequence_number"=>$request->get("prc_sequence_number", null),
+                "month_passed"=>$request->get("month_passed", null)
+                
+            ];
+
+            $member = EventRegistartion::find($request->id)->update($en);
+            $en["eventregid"]=$request->id;
+            $en["updatefrom"]="Member Edit";
+            $eventchangelog=EventregistrationLog::updateOrCreate(["id" =>null], $en);
+            $memberinfo = EventRegistartion::find($request->id);
+            DB::commit();
+
+            return response()->json(['resultKey' => 1, 'resultValue' =>$memberinfo, 'errorCode' => null,'errorMsg' => null], 200);
+       
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+    }
 
 }
