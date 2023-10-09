@@ -40,7 +40,7 @@ class MemberController extends BaseController
                         WHEN e.type_of_registration = 10 THEN "CMMT-"
                         WHEN e.type_of_registration = 11 THEN "SVCP-"
                     END,  concat(SUBSTRING("000000", 1, (6-LENGTH(m.controlnumber))),m.controlnumber))
-         END AS controlnumber FROM psme.members m
+         END AS controlnumber,m.memberid FROM psme.members m
 join eventregistration e on m.memberid=e.id where claim="'.$request->type.'"');
                     $queryModel = $member;
                     return response()->json(['resultKey' => 1, 'resultValue' => $queryModel, 'errorCode' => null,'errorMsg' => null], 200);
