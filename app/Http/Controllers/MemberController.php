@@ -228,9 +228,7 @@ class MemberController extends BaseController
                                 WHEN eventregistration.type_of_registration = 11 THEN "SVCP-"
                             END,  concat(SUBSTRING("000000", 1, (6-LENGTH(eventregistration.controlnum))),eventregistration.controlnum))
                  END AS controlnumber'))
-        ->whereRaw(('case WHEN eventregistration.type_of_registration=1 or eventregistration.type_of_registration=5  THEN 
-        eventregistration.status_of_transaction = 1
-         ELSE true END'))
+        
         ->where('eventregistration.is_active', '=', 1)
         ->where('eventregistration.iswalkin', '=', 1)
         
