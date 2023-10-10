@@ -14,6 +14,7 @@ use App\Models\Chapter;
 use App\Models\Industry;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
 class MemberController extends BaseController
@@ -228,9 +229,9 @@ class MemberController extends BaseController
                                 WHEN eventregistration.type_of_registration = 11 THEN "SVCP-"
                             END,  concat(SUBSTRING("000000", 1, (6-LENGTH(eventregistration.controlnum))),eventregistration.controlnum))
                  END AS controlnumber'))
-        
         ->where('eventregistration.is_active', '=', 1)
         ->where('eventregistration.iswalkin', '=', 1)
+        ->where('eventregistration.status_of_transaction', '=', 0)
         
             ->groupby('eventregistration.id')
             ->distinct('eventregistration.email_address')
@@ -270,6 +271,7 @@ class MemberController extends BaseController
          Concat(upper(SUBSTRING(eventregistration.middle_name, 1, 1)),".")
          else "" end,
         " ",eventregistration.last_name," ",eventregistration.suffix)) as fullname' ),
+        DB::raw('CASE WHEN eventregistration.type_of_registration = 3 then "" else  eventregistration.type_of_registration end as typeregnum'),
         DB::raw('CASE WHEN  
                             eventregistration.type_of_registration = 3 
                        THEN CONCAT("11THPMCH-VSTR-",eventregistration.controlnum)
@@ -510,6 +512,45 @@ class MemberController extends BaseController
         }
         
     }
+    public function markaspaideMember(Request $request){
+        try {
+            $this->validate($request, [
+                'id' => 'required',
+            ]);
+            $member = EventRegistartion::find($request->id)->update(["status_of_transaction"=>1]);
+            $membernew =EventRegistartion::find($request->id);
+            DB::select("call sp_generatecontrolnumbergeneric('".$membernew->id."','".$membernew->type_of_registration."')");
+            
+            $contnum=DB::select('SELECT CASE WHEN  
+            e.type_of_registration = 3 
+       THEN CONCAT("11THPMCH-VSTR-",e.controlnum)
+       ELSE CONCAT("71STNC-",
+            CASE 
+                WHEN e.type_of_registration = 1 THEN "DLGT-"  
+                WHEN e.type_of_registration = 4 THEN "NBOT-"
+                WHEN e.type_of_registration = 5 THEN "CPRS-"
+                WHEN e.type_of_registration = 6 THEN "TDCH-"
+                WHEN e.type_of_registration = 7 THEN "PSTP-"
+                WHEN e.type_of_registration = 8 THEN "CHRP-"
+                WHEN e.type_of_registration = 9 THEN "CMMT-"
+                WHEN e.type_of_registration = 10 THEN "CMMT-"
+                WHEN e.type_of_registration = 11 THEN "SVCP-"
+            END,  concat(SUBSTRING("000000", 1, (6-LENGTH(e.controlnum))),e.controlnum))
+        END AS cntnum FROM eventregistration e WHERE e.id="'.$membernew->id.'"');
+            
+            $noteReq                 = new Request();
+            $noteReq['controlnumber']         = $contnum[0]->cntnum;
+           
+            $this->generateQrcode($noteReq);
+
+            return response()->json(['resultKey' => 1, 'resultValue' => $member, 'errorCode' => null,'errorMsg' => null], 200);
+       
+        } catch (\Exception $ex) {
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+    }
+
     public function updateMember(Request $request){
         try {   
             $this->validate($request, [
@@ -819,5 +860,31 @@ class MemberController extends BaseController
         }
         
     }
+    public function generateQrcode(Request $request){
+        try {   
+            $this->validate($request, [
+                'controlnumber' => 'required'
+            ]);
+            $apiURL =env('qrcodeURl').'order' ;
+            // POST Data
+            $processdata =array(
+                "controlnumber" => $request->get('controlnumber',null)
+            );
+            $postInput = $processdata;
+          
+            $response = Http::post($apiURL, $postInput);
+            $statusCode = $response->status();
+            $responseBody = json_decode($response->getBody(), true);
+
+            return response()->json(['resultKey' => 1, 'resultValue' =>$responseBody, 'errorCode' => null,'errorMsg' => null], 200);
+       
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
+        }
+        
+    }
+    
+
 
 }

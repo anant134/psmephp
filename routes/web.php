@@ -81,7 +81,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($ro
         $router->get('getScanmember','MemberController@getScanmember');
         $router->get('getIndustry','MemberController@getIndustry');
         $router->get('getChapter','MemberController@getChapter');
-        
+        $router->post('markaspaideMember','MemberController@markaspaideMember');
     });
 });
 $router->group(['midlleware'=>'auth','prefix'=>'api'],function($router){
