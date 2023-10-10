@@ -208,7 +208,7 @@ class UserController extends Controller
             }
     }
     public function postLogin(Request $request)
-    {
+    {   
         $this->validate($request, [
             'username' => 'required',
             'password' => 'required',
@@ -217,7 +217,7 @@ class UserController extends Controller
         try {
 
             $credentials = $request->only(['username', 'password']);
-            if (! $token = Auth::attempt($credentials,['exp' => Carbon::now()->addDays(1)->timestamp])) {
+            if (! $token = Auth::attempt($credentials,['exp' => Carbon::now()->addDays(3)->timestamp])) {
                 
                 return response()->json([ "resultKey"=>0,
                                         "resultValue"=>[],
