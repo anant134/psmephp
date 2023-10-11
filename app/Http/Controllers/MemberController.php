@@ -632,83 +632,7 @@ class MemberController extends BaseController
                     $this->bulkupload($data);
                    // ItemCSVUploadJob::dispatch($data, $header);                
             }
-            // $count=1;
-            // $countasdasd=50;
-            // $intakesFormObjects = [];
-            // $to_insertlog=[];
-            // foreach ($data as $key => $val) {
-                
-            //     if($count==$countasdasd){
-            //         $countasdasd=$countasdasd+50;
-            //     }
-                
-              
-            //     if($data[$key][18]){
-            //         // $queryModel = DB::table('eventregistration_temp')
-                
-            //         // ->where('eventregistration_temp.email_address', $data[$key][9])
-            //         // ->orWhere('eventregistration_temp.contact_number', $data[$key][8])
-            //         // ->orWhere('eventregistration_temp.prc_license_number', $data[$key][18]);
-            //         // $queryModel = $queryModel->get();
-            //         // if(count($queryModel)){
-                       
-            //         // }else{
-            //             // $qry="select count(*) as cntnumber 
-            //             // from eventregistration_temp where status_of_transaction=1 
-            //             // and is_active=1  and controlnum is not null
-            //             // and type_of_registration=".$data[$key][18];
-            //             // $resqry= DB::select($qry);
-            //             // $cntnumber=$resqry[0]->cntnumber+1;
-            //             $dataobj=[
-            //                 "first_name"=>$data[$key][0],
-            //                 "middle_name"=>$data[$key][1],
-            //                 "last_name"=>$data[$key][2],
-            //                 "suffix"=>$data[$key][3],
-            //                  "gender"=>$data[$key][4],
-            //                  "birth_date"=>$data[$key][5],
-            //                  "complete_address"=>$data[$key][6],
-            //                  "zip_code"=>$data[$key][7],
-            //                  "contact_number"=>$data[$key][8],
-            //                  "email_address"=>$data[$key][9],
-            //                  "sector"=>$data[$key][10],
-            //                 "company_name"=>$data[$key][11],
-            //                 "job_title"=>$data[$key][12],
-            //                 "industry"=>$data[$key][13],
-            //                 "type_of_registration"=>$data[$key][14],
-            //                 "status_of_transaction"=>1,
-            //                 "eventtype"=>$data[$key][16],
-            //                 "eventid"=>$data[$key][17],
-            //                 "prc_license_number"=>$data[$key][18],
-            //                 "prc_license_date_of_registration"=>$data[$key][19],
-            //                 "prc_license_date_of_expiration"=>$data[$key][20],
-            //                 "type_of_membership"=>$data[$key][21],
-            //                 "psme_chapter"=>$data[$key][22],
-                           
-            //                 "isbulkuploaded"=>1,
-            //             ];
-
-            //             array_push($to_insertlog, $dataobj);
-            //             $to_insertlog[] = $dataobj;
-            //             $count=$count+1;
-                        
-            //        // }
-            //     }
-                
-            // }
             
-
-
-
-            // DB::beginTransaction();
-            // $intakesFormObjects[]= EventRegistrationTemp::insert($to_insertlog);
-            //             //EventRegistrationTemp::updateOrCreate(["id" => null], $to_insertlog);
-                        
-            //             DB::commit();
-           
-           
-           
-
-            //code...
            
                 return response()->json(['resultKey' => 1, 'resultValue' => [], 'errorCode' => null,'errorMsg' => null], 200);
         } catch (\Exception $ex) {
@@ -720,6 +644,7 @@ class MemberController extends BaseController
 
     public function bulkupload($data){
         $intakesFormObjects = [];
+        $batchid=random_int(100000, 999999);
         $to_insertlog=[];
         foreach ($data as $key => $val) {
             //if($data[$key][18]){
@@ -747,8 +672,8 @@ class MemberController extends BaseController
                             "prc_license_date_of_expiration"=>$data[$key][20],
                             "type_of_membership"=>$data[$key][21],
                             "psme_chapter"=>$data[$key][22],
-                           
                             "isbulkuploaded"=>1,
+                            "batchid"=>$batchid
                         ];
                         array_push($to_insertlog, $dataobj);
                        // $to_insertlog[] = $dataobj;
@@ -756,13 +681,14 @@ class MemberController extends BaseController
               //  }
                 
         }
+        $ss="";
         DB::beginTransaction();
         
             $intakesFormObjects[]= EventRegistartion::insert($to_insertlog);
             
         DB::commit();
         //control num
-        $eventreg=EventRegistartion::where("is_active",1)->where("isbulkuploaded",1)->where("controlnum",null);
+        $eventreg=EventRegistartion::where("is_active",1)->where("batchid",$batchid)->where("isbulkuploaded",1)->where("controlnum",null);
 
         $eventreg=$eventreg->get();
         $evenRegistype= DB::select('select count(*) as cnt,type_of_registration
@@ -778,12 +704,15 @@ class MemberController extends BaseController
             if($qry){
                 $cnt=$qry[0]->controlnum+1;
             }
-            
-            $s="";
             foreach ($eventreg as $key => $value) {
                 $eventreg[$key]->controlnum=$cnt;
                 $eventreg[$key]->save();
+                
                 $cnt=$cnt+1;
+                //if($this->generateQrcode($noteReq)){
+                    
+               // }
+                
             }
             # code...
         }
@@ -876,10 +805,11 @@ class MemberController extends BaseController
             $statusCode = $response->status();
             $responseBody = json_decode($response->getBody(), true);
 
-            return response()->json(['resultKey' => 1, 'resultValue' =>$responseBody, 'errorCode' => null,'errorMsg' => null], 200);
+            return true; 
+            //response()->json(['resultKey' => 1, 'resultValue' =>$responseBody, 'errorCode' => null,'errorMsg' => null], 200);
        
         } catch (\Exception $ex) {
-            DB::rollBack();
+          //  DB::rollBack();
             return response()->json(['resultKey' => 0, 'resultValue' => null, 'errorCode' => 1,'errorMsg' => $ex->getMessage()], 200);
         }
         
